@@ -44,11 +44,24 @@ public class PlayerController : MonoBehaviour {
     // Update is called once per frame
     void FixedUpdate()
     {
-        float moveHorzontal = Input.GetAxis("Horizontal");
+        MovePlayer();
+    }
+
+    void MovePlayer()
+    {
+        float moveHorizontal = Input.GetAxis("Horizontal");
         float moveVertical = Input.GetAxis("Vertical");
 
-        Vector2 movement = new Vector2(moveHorzontal * player.stats.Speed, moveVertical * player.stats.Speed);
+        // Move player
+        Vector2 movement = new Vector2(moveHorizontal * player.stats.Speed, moveVertical * player.stats.Speed);
         rb.velocity = movement;
+        
+        // Rotate player in direction they're moving
+        if (movement != Vector2.zero)
+        {
+            float angle = Mathf.Atan2(movement.y, movement.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        }
     }
 }
 
