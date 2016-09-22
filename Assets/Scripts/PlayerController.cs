@@ -2,21 +2,30 @@
 
 public class PlayerController : MonoBehaviour {
 
-    public Player player;
     public Rigidbody2D rb;
-    public int CustomHealth;
-    public int CustomSpeed;
+    public Stats PlayerStats;
 
+    private Player player;
 
     [System.Serializable]
     public class Player
     {
         public Stats stats;
 
-        // Default Contructor
-        public Player(int hp, int spd)
+        public Player(Stats setStats)
         {
-            stats = new Stats(hp, spd);
+            // Set stats to default values if they go below 0
+            if(setStats.Health <= 0)
+            {
+                setStats.Health = 10;
+            }
+
+            if(setStats.Speed <= 0)
+            {
+                setStats.Speed = 5;
+            }
+
+            stats = setStats;
         }
     }
 
@@ -25,33 +34,11 @@ public class PlayerController : MonoBehaviour {
     {
         public int Health;
         public int Speed;
-
-        // Default Contructor
-        public Stats()
-        {
-            Health = 10;
-            Speed = 5;
-        }
-
-        public Stats(int hp, int spd)
-        {
-            // Validate hp and spd
-            if(hp > 0 && spd > 0)
-            {
-                Health = hp;
-                Speed = spd;
-            }
-            else
-            {
-                Health = 10;
-                Speed = 5;
-            }
-        }
     }
 
 	// Use this for initialization
 	void Start () {
-        player = new Player(CustomHealth, CustomSpeed);
+        player = new Player(PlayerStats);
     }
 
     // Update is called once per frame
