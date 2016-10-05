@@ -251,4 +251,5 @@ paket-files/
 .idea/
 *.sln.iml
 Temp/
-Library/
+Library/metadata/
+Library/ShaderCache/
