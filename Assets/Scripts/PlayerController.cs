@@ -1,30 +1,37 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
+using GameDevFall2016.Scripts.InventoryManagement;
+using System.Linq;
 
-public class PlayerController : MonoBehaviour {
-
+public class PlayerController : MonoBehaviour
+{
     public Rigidbody2D rb;
     public Stats PlayerStats;
+    public Inventory PlayerInventory;
 
     private Player player;
+    private GameObject playerGO;
 
     [System.Serializable]
     public class Player
     {
         public Stats stats;
+        public Inventory inventory;
 
-        public Player(Stats setStats)
+        public Player(Stats setStats, Inventory setInventory)
         {
             // Set stats to default values if they go below 0
-            if(setStats.Health <= 0)
+            if (setStats.Health <= 0)
             {
                 setStats.Health = 10;
             }
 
-            if(setStats.Speed <= 0)
+            if (setStats.Speed <= 0)
             {
                 setStats.Speed = 5;
             }
 
+            inventory = setInventory;
             stats = setStats;
         }
     }
@@ -32,19 +39,29 @@ public class PlayerController : MonoBehaviour {
     [System.Serializable]
     public class Stats
     {
+        public float PickupRadius
+        {
+            get { return 0.5f; } // returns one value
+            protected set { } // prevents PickupRadius from being overwritten
+        }
+
         public int Health;
         public int Speed;
     }
 
-	// Use this for initialization
-	void Start () {
-        player = new Player(PlayerStats);
+    // Use this for initialization
+    void Start()
+    {
+        playerGO = GameObject.FindGameObjectWithTag("Player");
+        player = new Player(PlayerStats, PlayerInventory);
+        player.inventory.AddItemToInventory("Apple", 1);
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
         MovePlayer();
+        InteractWithWorld();
     }
 
     void MovePlayer()
@@ -55,7 +72,7 @@ public class PlayerController : MonoBehaviour {
         // Move player
         Vector2 movement = new Vector2(moveHorizontal * player.stats.Speed, moveVertical * player.stats.Speed);
         rb.velocity = movement;
-        
+
         // Rotate player in direction they're moving
         if (movement != Vector2.zero)
         {
@@ -63,5 +80,26 @@ public class PlayerController : MonoBehaviour {
             transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
         }
     }
-}
 
+    void InteractWithWorld()
+    {
+        if(Input.GetKey(KeyCode.E))
+        {
+            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(new Vector2(playerGO.transform.position.x, playerGO.transform.position.y), player.stats.PickupRadius);
+            foreach(var item in hitColliders.Where(i => i.name != "Player")) // all game objects besides player
+            {
+                if(item.tag == "PickupItem")
+                {
+                    player.inventory.AddItemToInventory(item.name, 1);
+                    Destroy(item.gameObject);
+
+                    Debug.Log("I picked up one: " + item.name);
+                }
+                else
+                {
+                    Debug.Log("I found an interesting " + item.name + ".");
+                }
+            }
+        }
+    }
+}
