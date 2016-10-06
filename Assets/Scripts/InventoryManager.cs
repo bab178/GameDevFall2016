@@ -1,42 +1,45 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace GameDevFall2016.Scripts.InventoryManagement
 {
     [System.Serializable]
     public class Inventory
     {
-        private int MaxItems = 10;
-        public List<Item> Items;
-
-        Inventory()
+        private int _maxItemCount = 12;
+        public int MaxItemCount
         {
-            Items = new List<Item>(0);
+            get
+            {
+                return _maxItemCount;
+            }
         }
 
-        public bool AddItemToInventory(string name, int quantity)
+        public int CurrentItemCount
         {
-            if (Items.Count < MaxItems)
+            get
             {
-                Items.Add(new Item(name, quantity));
+                return Items.Count;
+            }
+        }
+
+        public List<InventoryItem> Items;
+        public Inventory()
+        {
+            Items = new List<InventoryItem>(0);
+        }
+
+        public bool AddItemToInventory(InventoryItem ii)
+        {
+            if (CurrentItemCount < _maxItemCount)
+            {
+                Items.Add(ii);
                 return true;
             }
             else
             {
                 return false;
             }
-        }
-    }
-
-    [System.Serializable]
-    public class Item
-    {
-        private string _name;
-        private int _quantity;
-
-        public Item(string name, int quantity)
-        {
-            _name = name;
-            _quantity = quantity;
         }
     }
 }
