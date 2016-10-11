@@ -104,9 +104,9 @@ public class PlayerController : MonoBehaviour
         if(Input.GetKey(KeyCode.E))
         {
             Collider2D[] hitColliders = Physics2D.OverlapCircleAll(new Vector2(playerGO.transform.position.x, playerGO.transform.position.y), player.stats.PickupRadius);
-            foreach(var item in hitColliders.Where(i => i.name != "Player")) // all game objects besides player
+            foreach(var item in hitColliders.Where(i => i.tag != "Player")) // all game objects besides player
             {
-                if(item.tag == "PickupItem")
+                if(item.tag == "InventoryItem")
                 {
                     // Create InventoryItem from GameObject
                     InventoryItem newItem = item.GetComponent<InventoryItem>();
