@@ -16,24 +16,10 @@ public class HumanEnemyController : MonoBehaviour {
 
     private Vector3 moveDirection;
 
-    public GameObject target;
-    private Transform myTransform;
-    private float distance;
-    public float lockOnRange;
-    private RaycastHit2D lineOfSight;
-
-    void Awake()
-    {
-        myTransform = transform;
-    }
-
     // Use this for initialization
     void Start()
     {
         myRigidbody = GetComponent<Rigidbody2D>();
-
-        //timeBetweenMoveCounter = timeBetweenMove;
-        //timeToMoveCounter = timeToMove;
 
         timeBetweenMoveCounter = Random.Range(timeBetweenMove * 0.75f, timeBetweenMove * 1.25f);
         timeToMoveCounter = Random.Range(timeToMove * 0.75f, timeToMove * 1.25f);
@@ -42,52 +28,34 @@ public class HumanEnemyController : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        distance = (transform.position - target.gameObject.transform.position).magnitude;
-
-        if (distance <= lockOnRange)
+        if (moving)
         {
-            lineOfSight = Physics2D.Raycast(transform.position, target.gameObject.transform.position, lockOnRange);
+            timeToMoveCounter -= Time.deltaTime;
+            myRigidbody.velocity = moveDirection;
 
-            if (lineOfSight.collider.gameObject.tag == "Player")
+            if (timeToMoveCounter < 0f)
             {
-                moveDirection = new Vector3(target.gameObject.transform.position.x, target.gameObject.transform.position.y, 0f).normalized;
-                myRigidbody.velocity = moveDirection * moveSpeed;
-                RotateEnemy();
+                moving = false;
+                //timeBetweenMoveCounter = timeBetweenMove;
+                timeBetweenMoveCounter = Random.Range(timeBetweenMove * 0.75f, timeBetweenMove * 1.25f);
             }
 
+            RotateEnemy();
         }
         else
         {
-            if (moving)
+            timeBetweenMoveCounter -= Time.deltaTime;
+            myRigidbody.velocity = Vector2.zero;
+
+            if (timeBetweenMoveCounter < 0f)
             {
-                timeToMoveCounter -= Time.deltaTime;
-                myRigidbody.velocity = moveDirection;
+                moving = true;
+                //timeToMoveCounter = timeToMove;
+                timeToMoveCounter = Random.Range(timeToMove * 0.75f, timeToMove * 1.25f);
 
-                if (timeToMoveCounter < 0f)
-                {
-                    moving = false;
-                    //timeBetweenMoveCounter = timeBetweenMove;
-                    timeBetweenMoveCounter = Random.Range(timeBetweenMove * 0.75f, timeBetweenMove * 1.25f);
-                }
-
-                RotateEnemy();
-            }
-            else
-            {
-                timeBetweenMoveCounter -= Time.deltaTime;
-                myRigidbody.velocity = Vector2.zero;
-
-                if (timeBetweenMoveCounter < 0f)
-                {
-                    moving = true;
-                    //timeToMoveCounter = timeToMove;
-                    timeToMoveCounter = Random.Range(timeToMove * 0.75f, timeToMove * 1.25f);
-
-                    moveDirection = new Vector3(Random.Range(1f, -1f) * moveSpeed, Random.Range(1f, -1f) * moveSpeed, 0f);
-                }
+                moveDirection = new Vector3(Random.Range(1f, -1f) * moveSpeed, Random.Range(1f, -1f) * moveSpeed, 0f);
             }
         }
-
     }
 
     void OnCollisionEnter2D(Collision2D other)
