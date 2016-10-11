@@ -1,15 +1,20 @@
 ﻿using GameDevFall2016.Scripts.InventoryManagement;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
+    public Canvas InventoryWindow;
+    public GameObject btnPrefab;
     public Rigidbody2D rb;
     public Stats PlayerStats;
     public Inventory PlayerInventory;
 
     private Player player;
     private GameObject playerGO;
+    bool inventoryWindowActive;
+    GridLayoutGroup inventoryGridLayout;
 
     [System.Serializable]
     public class Player
@@ -48,12 +53,15 @@ public class PlayerController : MonoBehaviour
         public int Speed;
     }
 
+
+
     // Use this for initialization
     void Start()
     {
+        inventoryWindowActive = false;
+        inventoryGridLayout = InventoryWindow.GetComponentInChildren<GridLayoutGroup>();
         playerGO = GameObject.FindGameObjectWithTag("Player");
         player = new Player(PlayerStats, PlayerInventory);
-        player.inventory.AddItemToInventory("Apple", 1);
     }
 
     public void TakeDamage(int damageTaken)
@@ -71,6 +79,7 @@ public class PlayerController : MonoBehaviour
     {
         MovePlayer();
         InteractWithWorld();
+        InteractWithMenu();
     }
 
     void MovePlayer()
@@ -95,20 +104,53 @@ public class PlayerController : MonoBehaviour
         if(Input.GetKey(KeyCode.E))
         {
             Collider2D[] hitColliders = Physics2D.OverlapCircleAll(new Vector2(playerGO.transform.position.x, playerGO.transform.position.y), player.stats.PickupRadius);
-            foreach(var item in hitColliders.Where(i => i.name != "Player")) // all game objects besides player
+            foreach(var item in hitColliders.Where(i => i.tag != "Player")) // all game objects besides player
             {
-                if(item.tag == "PickupItem")
+                if(item.tag == "InventoryItem")
                 {
-                    player.inventory.AddItemToInventory(item.name, 1);
-                    Destroy(item.gameObject);
+                    // Create InventoryItem from GameObject
+                    InventoryItem newItem = item.GetComponent<InventoryItem>();
+                    newItem.Sprite = item.GetComponent<SpriteRenderer>().sprite;
+                    newItem.Name = item.name;
+                    newItem.Quantity = 1;
+                    newItem.FlavorText = "Some kind of " + item.name;
 
-                    Debug.Log("I picked up one: " + item.name);
+                    if (player.inventory.AddItemToInventory(newItem))
+                    {
+                        // Add to / display in Inventory
+                        GameObject newItemBtn = (GameObject)Instantiate(btnPrefab, inventoryGridLayout.transform, false);
+                        
+                        var btnItem = newItemBtn.GetComponent<InventoryItem>();
+                        var btnSprite = newItemBtn.GetComponent<Image>();
+                        btnSprite.sprite = newItem.Sprite;
+                        Text btnText = newItemBtn.transform.GetChild(0).GetComponent<Text>();
+                        btnText.text = newItem.Quantity.ToString();
+
+                        // Remove item from scene
+                        Destroy(item.gameObject);
+                        Debug.Log("+" + newItem.Quantity + " " + newItem.Name);
+                    }
+                    else
+                    {
+                        // Inventory is full
+                        Debug.Log("My pockets are too full... I only have " + player.inventory.MaxItemCount + " spots.");
+                    }
                 }
                 else
                 {
-                    Debug.Log("I found an interesting " + item.name + ".");
+                    Debug.Log("There's an interesting " + item.name + " next to me. I don't think this will fit in my pockets.");
                 }
             }
+        }
+    }
+
+    void InteractWithMenu()
+    {
+        // Toggle Inventory Window
+        if(Input.GetKey(KeyCode.I))
+        {
+            inventoryWindowActive = !inventoryWindowActive;
+            InventoryWindow.gameObject.SetActive(inventoryWindowActive);
         }
     }
 }
