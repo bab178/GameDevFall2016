@@ -1,7 +1,6 @@
-﻿using System;
-using UnityEngine;
-using GameDevFall2016.Scripts.InventoryManagement;
+﻿using GameDevFall2016.Scripts.InventoryManagement;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
@@ -63,6 +62,16 @@ public class PlayerController : MonoBehaviour
         inventoryGridLayout = InventoryWindow.GetComponentInChildren<GridLayoutGroup>();
         playerGO = GameObject.FindGameObjectWithTag("Player");
         player = new Player(PlayerStats, PlayerInventory);
+    }
+
+    public void TakeDamage(int damageTaken)
+    {
+        player.stats.Health = -damageTaken;
+        if(player.stats.Health <= 0)
+        {
+            // Die, Respawn, Game Over...? You choose
+            Debug.Log("Player Died!");
+        }
     }
 
     // Update is called once per frame
