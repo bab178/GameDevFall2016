@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour
     private GameObject playerGO;
     bool inventoryWindowActive;
     GridLayoutGroup inventoryGridLayout;
+    private float originalSpeed;
 
     [System.Serializable]
     public class Player
@@ -50,7 +51,7 @@ public class PlayerController : MonoBehaviour
         }
 
         public int Health;
-        public int Speed;
+        public float Speed;
     }
 
 
@@ -62,6 +63,7 @@ public class PlayerController : MonoBehaviour
         inventoryGridLayout = InventoryWindow.GetComponentInChildren<GridLayoutGroup>();
         playerGO = GameObject.FindGameObjectWithTag("Player");
         player = new Player(PlayerStats, PlayerInventory);
+        originalSpeed = player.stats.Speed;
     }
 
     public void TakeDamage(int damageTaken)
@@ -86,6 +88,12 @@ public class PlayerController : MonoBehaviour
     {
         float moveHorizontal = Input.GetAxis("Horizontal");
         float moveVertical = Input.GetAxis("Vertical");
+
+        // Sprint!
+        if (Input.GetButtonDown("Sprint"))
+            player.stats.Speed = originalSpeed * 2;
+        if (Input.GetButtonUp("Sprint"))
+            player.stats.Speed = originalSpeed;
 
         // Move player
         Vector2 movement = new Vector2(moveHorizontal * player.stats.Speed, moveVertical * player.stats.Speed);
