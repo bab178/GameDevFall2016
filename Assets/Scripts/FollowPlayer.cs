@@ -9,6 +9,7 @@ public class FollowPlayer : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+        PlayerTransform = GameObject.FindGameObjectWithTag("Player").gameObject.transform;
         minZoom = 5f;
         maxZoom = 10f;
         cameraZoom = minZoom;
