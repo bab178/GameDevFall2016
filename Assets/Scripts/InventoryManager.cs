@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 
 namespace GameDevFall2016.Scripts.InventoryManagement
 {
@@ -29,11 +28,11 @@ namespace GameDevFall2016.Scripts.InventoryManagement
             Items = new List<InventoryItem>(0);
         }
 
-        public bool AddItemToInventory(InventoryItem ii)
+        public bool AddItemToInventory(InventoryItem itemToAdd)
         {
             if (CurrentItemCount < _maxItemCount)
             {
-                Items.Add(ii);
+                Items.Add(itemToAdd);
                 return true;
             }
             else

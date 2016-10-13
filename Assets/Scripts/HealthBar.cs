@@ -1,13 +1,11 @@
 ﻿using UnityEngine;
-using System.Collections;
-using UnityEngine.UI;
-
 
 public class HealthBar : MonoBehaviour
 {
-    public Slider healthBar;
-    public float maxHealth;
+    public UnityEngine.UI.Slider healthBar;
     public PlayerController Player;
+
+    float maxHealth;
 
 	// Use this for initialization
 	void Start ()

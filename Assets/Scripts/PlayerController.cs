@@ -13,8 +13,8 @@ public class PlayerController : MonoBehaviour
 
     private Player player;
     private GameObject playerGO;
-    bool inventoryWindowActive;
-    GridLayoutGroup inventoryGridLayout;
+    private bool inventoryWindowActive;
+    private GridLayoutGroup inventoryGridLayout;
     private float originalSpeed;
 
     [System.Serializable]
@@ -54,8 +54,6 @@ public class PlayerController : MonoBehaviour
         public float Speed;
     }
 
-
-
     // Use this for initialization
     void Start()
     {
@@ -69,9 +67,14 @@ public class PlayerController : MonoBehaviour
     public void TakeDamage(int damageTaken)
     {
         player.stats.Health = -damageTaken;
+
+        // TODO: Damage numbers
+
         if(player.stats.Health <= 0)
         {
-            // Die, Respawn, Game Over...? You choose
+            // TODO: Die, Respawn, Game Over...?
+
+            gameObject.SetActive(false);
             Debug.Log("Player Died!");
         }
     }
@@ -92,6 +95,8 @@ public class PlayerController : MonoBehaviour
         // Sprint!
         if (Input.GetButtonDown("Sprint"))
             player.stats.Speed = originalSpeed * 2;
+
+        // Stop sprinting
         if (Input.GetButtonUp("Sprint"))
             player.stats.Speed = originalSpeed;
 
@@ -146,6 +151,7 @@ public class PlayerController : MonoBehaviour
                 }
                 else
                 {
+                    // Cannot pick this thing up
                     Debug.Log("There's an interesting " + item.name + " next to me. I don't think this will fit in my pockets.");
                 }
             }

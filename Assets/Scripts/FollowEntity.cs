@@ -1,16 +1,15 @@
 ﻿using UnityEngine;
 
-public class FollowPlayer : MonoBehaviour {
-    public Transform PlayerTransform;
-    public Camera camera;
+public class FollowEntity : MonoBehaviour {
+    public Transform targetTransform;
+    public float minZoom, maxZoom;
 
+    Camera cam;
     float cameraZoom;
-    float minZoom, maxZoom;
 
     // Use this for initialization
     void Start () {
-        minZoom = 5f;
-        maxZoom = 10f;
+        cam = gameObject.GetComponent<Camera>();
         cameraZoom = minZoom;
         RepositionCamera();
     }
@@ -22,8 +21,8 @@ public class FollowPlayer : MonoBehaviour {
     }
 
     void RepositionCamera() {
-        camera.transform.position = new Vector3(PlayerTransform.position.x, PlayerTransform.position.y, -1f);
-        camera.orthographicSize = cameraZoom;
+        cam.transform.position = new Vector3(targetTransform.position.x, targetTransform.position.y, -1f);
+        cam.orthographicSize = cameraZoom;
     }
 
     void AdjustCameraZoom()

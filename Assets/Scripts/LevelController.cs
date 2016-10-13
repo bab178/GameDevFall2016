@@ -11,6 +11,7 @@ public class LevelController : MonoBehaviour {
     public string levelFileName;
     public ColorToPrefab[] colorToPrefabs;
 
+    Color32 transparent = new Color32(0, 0, 0, 0);
     Color32 white = new Color32(255, 255, 255, 255);
 
     void Start()
@@ -54,18 +55,16 @@ public class LevelController : MonoBehaviour {
 
     void SpawnTileAt(Color32 c, int x, int y)
     {
-
-        // If this is a transparent pixel, then it's meant to just be empty.
-        if (c.Equals(white))
+        // If this is a white or transparent pixel, then it's meant to just be empty.
+        if (c.Equals(white) || c.Equals(transparent))
         {
             return;
         }
 
         // Find the right color in our map
-
-        // NOTE: This isn't optimized. You should have a dictionary lookup for max speed
         foreach (ColorToPrefab ctp in colorToPrefabs)
         {
+        // NOTE: This isn't optimized. You should have a dictionary lookup for max speed
             if (c.Equals(ctp.Color))
             {
                 // Spawn the prefab at the right location
@@ -78,8 +77,6 @@ public class LevelController : MonoBehaviour {
         }
 
         // If we got to this point, it means we did not find a matching color in our array.
-
         Debug.LogError("No color to prefab found for: " + c.ToString());
-
     }
 }

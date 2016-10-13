@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+
 namespace GameDevFall2016.Scripts.InventoryManagement
 {
     [System.Serializable]
