@@ -1,22 +1,23 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 public class HealthBar : MonoBehaviour
 {
-    public UnityEngine.UI.Slider healthBar;
-    public PlayerController Player;
+    private Slider healthBar;
+    private PlayerController Player;
+    private float maxHealth;
 
-    float maxHealth;
-
-	// Use this for initialization
 	void Start ()
     {
+        // NOTE: For this script to work it must be a child of a PlayerController
+        healthBar = transform.GetComponentInChildren<Slider>();
+        Player = transform.GetComponentInParent<PlayerController>();
         maxHealth = Player.PlayerStats.Health;
-        healthBar.value = maxHealth;
         healthBar.minValue = 0;
         healthBar.maxValue = maxHealth;
+        healthBar.value = maxHealth;
 	}
-	
-	// Update is called once per frame
+
 	void Update ()
     {
         UpdateHealth();

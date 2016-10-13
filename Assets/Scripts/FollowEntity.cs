@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 
 public class FollowEntity : MonoBehaviour {
-    public Transform targetTransform;
     public float minZoom, maxZoom;
-
+    private Transform targetTransform;
+    private GameObject playerGO;
     Camera cam;
     float cameraZoom;
 
@@ -11,7 +11,15 @@ public class FollowEntity : MonoBehaviour {
     void Start () {
         cam = gameObject.GetComponent<Camera>();
         cameraZoom = minZoom;
-        RepositionCamera();
+
+        playerGO = GameObject.FindGameObjectWithTag("Player"); // NOTE: This only works with one player
+        targetTransform = playerGO.transform;
+
+        foreach(var canvas in playerGO.GetComponentsInChildren<Canvas>())
+        {
+            // Set Player GUI to be attached to camera
+            canvas.worldCamera = cam;
+        }
     }
 
     // Update is called once per frame
@@ -22,6 +30,7 @@ public class FollowEntity : MonoBehaviour {
 
     void RepositionCamera() {
         cam.transform.position = new Vector3(targetTransform.position.x, targetTransform.position.y, -1f);
+        cam.transform.rotation = Quaternion.identity;
         cam.orthographicSize = cameraZoom;
     }
 

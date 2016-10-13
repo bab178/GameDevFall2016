@@ -69,9 +69,11 @@ public class LevelController : MonoBehaviour {
             {
                 // Spawn the prefab at the right location
                 GameObject go = (GameObject)Instantiate(ctp.Prefab, new Vector3(x, y, 0), Quaternion.identity);
-                go.transform.SetParent(this.transform);
-                go.name = "Tile" + x + "-" + y; 
-                // maybe do more stuff to the gameobject here?
+                if(!go.CompareTag("Player"))
+                {
+                    go.transform.SetParent(this.transform);
+                    go.name = string.Concat(ctp.Prefab.name, " (", x, ", ", y, ")");
+                }
                 return;
             }
         }
