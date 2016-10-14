@@ -36,13 +36,17 @@ public class FollowEntity : MonoBehaviour {
 
     void AdjustCameraZoom()
     {
-        // Invert scroll
-        float scroll = -Input.GetAxis("Mouse ScrollWheel");
-        if (scroll != 0f) // if scrolled
+        // Only zoom if holding Zoom
+        if(Input.GetAxis("Zoom") != 0f)
         {
-            if (cameraZoom + scroll > maxZoom) cameraZoom = maxZoom;
-            else if (cameraZoom + scroll < minZoom) cameraZoom = minZoom;
-            else cameraZoom += scroll;
+            // Invert scroll
+            float scroll = -Input.GetAxis("Mouse ScrollWheel") * 4;
+            if (scroll != 0f) // if scrolled
+            {
+                if (cameraZoom + scroll > maxZoom) cameraZoom = maxZoom;
+                else if (cameraZoom + scroll < minZoom) cameraZoom = minZoom;
+                else cameraZoom += scroll;
+            }
         }
     }
 }
