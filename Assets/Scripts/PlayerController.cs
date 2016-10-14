@@ -66,6 +66,7 @@ public class PlayerController : MonoBehaviour
         inventoryWindowActive = false;
         inventoryWindow.gameObject.SetActive(inventoryWindowActive);
         buttonPrefab = Resources.Load<GameObject>("InventoryItemButton");
+        
     }
 
     public void TakeDamage(int damageTaken)
@@ -89,6 +90,7 @@ public class PlayerController : MonoBehaviour
         MovePlayer();
         InteractWithWorld();
         InteractWithMenu();
+        
     }
 
     void MovePlayer()
@@ -174,4 +176,5 @@ public class PlayerController : MonoBehaviour
             inventoryWindow.gameObject.SetActive(inventoryWindowActive);
         }
     }
+
 }
