@@ -7,10 +7,11 @@ public class PlayerController : MonoBehaviour
 {
     public Stats PlayerStats;
     public Inventory PlayerInventory;
+    public Player player;
 
-    private Player player;
     private Rigidbody2D rb;
     private float originalSpeed;
+    private float playerForward = 0.0f; // used to find the direction the player is facing in.
 
     private Canvas inventoryWindow;
     private GridLayoutGroup inventoryGridLayout;
@@ -52,6 +53,11 @@ public class PlayerController : MonoBehaviour
 
         public int Health;
         public float Speed;
+        public float AttackRadius
+        {
+            get { return 1.0f; } // returns one value
+            protected set { } // prevents AttackRadius from being overwritten
+        }
     }
 
     // Use this for initialization
@@ -66,7 +72,7 @@ public class PlayerController : MonoBehaviour
         inventoryWindowActive = false;
         inventoryWindow.gameObject.SetActive(inventoryWindowActive);
         buttonPrefab = Resources.Load<GameObject>("InventoryItemButton");
-        
+
     }
 
     public void TakeDamage(int damageTaken)
@@ -75,7 +81,7 @@ public class PlayerController : MonoBehaviour
 
         // TODO: Damage numbers
 
-        if(player.stats.Health <= 0)
+        if (player.stats.Health <= 0)
         {
             // TODO: Die, Respawn, Game Over...?
 
@@ -89,8 +95,9 @@ public class PlayerController : MonoBehaviour
     {
         MovePlayer();
         InteractWithWorld();
-        InteractWithMenu();
-        
+
+        //InteractWithMenu();
+
     }
 
     void MovePlayer()
@@ -113,20 +120,22 @@ public class PlayerController : MonoBehaviour
         // Rotate player in direction they're moving
         if (movement != Vector2.zero)
         {
-            float angle = Mathf.Atan2(movement.y, movement.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            playerForward = Mathf.Atan2(movement.y, movement.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.AngleAxis(playerForward, Vector3.forward);
         }
     }
+
 
     // Pickup items, pull levers, press buttons, etc
     void InteractWithWorld()
     {
-        if(Input.GetKey(KeyCode.E))
+
+        if (Input.GetKey(KeyCode.E))
         {
             Collider2D[] hitColliders = Physics2D.OverlapCircleAll(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y), player.stats.PickupRadius);
-            foreach(var item in hitColliders.Where(i => i.tag != "Player")) // all game objects besides player
+            foreach (var item in hitColliders.Where(i => i.tag != "Player")) // all game objects besides player
             {
-                if(item.tag == "InventoryItem")
+                if (item.tag == "InventoryItem")
                 {
                     // Create InventoryItem from GameObject
                     InventoryItem newItem = item.GetComponent<InventoryItem>();
@@ -139,7 +148,7 @@ public class PlayerController : MonoBehaviour
                     {
                         // Add to / display in Inventory
                         GameObject newItemBtn = (GameObject)Instantiate(buttonPrefab, inventoryGridLayout.transform, false);
-                        
+
                         var btnItem = newItemBtn.GetComponent<InventoryItem>();
                         var btnSprite = newItemBtn.GetComponent<Image>();
                         btnSprite.sprite = newItem.Sprite;
@@ -166,11 +175,17 @@ public class PlayerController : MonoBehaviour
     }
 
 
+    public float getPlayerForward() // returns the player forward
+    {
+        return playerForward;
+    }
+
+
     // Open/close menus
     void InteractWithMenu()
     {
         // Toggle Inventory Window
-        if(Input.GetKeyDown(KeyCode.I))
+        
         {
             inventoryWindowActive = !inventoryWindowActive;
             inventoryWindow.gameObject.SetActive(inventoryWindowActive);

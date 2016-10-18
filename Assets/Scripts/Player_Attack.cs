@@ -1,16 +1,21 @@
-﻿using UnityEngine;
+﻿using GameDevFall2016.Scripts.InventoryManagement;
+using System.Linq;
 using System.Collections;
+using UnityEngine;
+
 
 public class Player_Attack : MonoBehaviour {
 
+    public GameObject Player;
+    PlayerController User;
+    float playerForward=0.0f;// used to find the direction the player is facing in.
 
-    Vector2 pointB;
-    Vector2 pointA;
+
 
     // Use this for initialization
     void Start ()
     {
-        Vector2 playerPosition = GameObject.Find("player").transform.position;
+        
     }
 
     
@@ -18,34 +23,42 @@ public class Player_Attack : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
-        playerAttack();
-	}
+        User =Player.GetComponent<PlayerController>();
+        playerForward=User.getPlayerForward();
+        PlayerAttack();
+    }
 
-    void playerAttack()
+    void PlayerAttack()
     {
-
-        pointA.x = GameObject.Find("player").transform.position.x + 0.55f;
-        pointA.y = GameObject.Find("player").transform.position.y - 0.16f;
-
-        pointB.x= GameObject.Find("player").transform.position.x + 0.2369485f;
-        pointB.y= GameObject.Find("player").transform.position.y + 0.16f;
-
-        Collider2D[] hitObjects = Physics2D.OverlapAreaAll(pointA, pointB);
-        foreach(var objects in hitObjects.Where(i=>i.tag !="Player"))
+        if (Input.GetKeyDown(KeyCode.Q))
         {
-            if(objects.tag=="Enemy")
+            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y), User.player.stats.AttackRadius);
+            foreach (var item in hitColliders.Where(i => i.tag != "Player")) // all game objects besides player
             {
-                if(Input.GetKey(KeyCode.Q))
+                if (item.tag == "Enemy")
                 {
-                    Debug.Log("Gotcha!!!");
+                    Debug.Log("Pressed Q");
 
-                    objects.GetComponent.Enemy_dmg();
+                    Vector2 enemyPosition = item.transform.position; // current position of enemy in the circle 
+                    Vector2 playerPosition = this.transform.position;
+                    float enemyAngle = Mathf.Atan((Mathf.Abs(playerPosition.y - enemyPosition.y))/ Mathf.Abs((playerPosition.x - enemyPosition.y))) * Mathf.Rad2Deg;// The angle of the enemy in reffrence to the player.
+                    float attackThreshold = 30.0f;// The size of the player attack cone
+                    float leftBound = playerForward + attackThreshold;// The left bound infront of the player
+                    float rightBound = playerForward - attackThreshold;// The right bound infront of the player
+
+                    Debug.Log("Enemy Angle: " + enemyAngle + ", Left Bound: " + leftBound + ", Right Bound: " + rightBound);
+
+                    if (enemyAngle <= leftBound && enemyAngle >= rightBound)
+                    {
+                        Debug.Log("Enemy Here");
+                    }
                 }
             }
+
         }
     }
 
-    
+
 
 
 }
