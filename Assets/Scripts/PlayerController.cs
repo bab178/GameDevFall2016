@@ -5,17 +5,17 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
-    public Canvas InventoryWindow;
-    public GameObject btnPrefab;
-    public Rigidbody2D rb;
     public Stats PlayerStats;
     public Inventory PlayerInventory;
 
     private Player player;
-    private GameObject playerGO;
-    bool inventoryWindowActive;
-    GridLayoutGroup inventoryGridLayout;
+    private Rigidbody2D rb;
     private float originalSpeed;
+
+    private Canvas inventoryWindow;
+    private GridLayoutGroup inventoryGridLayout;
+    private bool inventoryWindowActive;
+    private GameObject buttonPrefab;
 
     [System.Serializable]
     public class Player
@@ -54,24 +54,31 @@ public class PlayerController : MonoBehaviour
         public float Speed;
     }
 
-
-
     // Use this for initialization
     void Start()
     {
-        inventoryWindowActive = false;
-        inventoryGridLayout = InventoryWindow.GetComponentInChildren<GridLayoutGroup>();
-        playerGO = GameObject.FindGameObjectWithTag("Player");
+        rb = gameObject.GetComponent<Rigidbody2D>();
         player = new Player(PlayerStats, PlayerInventory);
         originalSpeed = player.stats.Speed;
+
+        inventoryWindow = transform.FindChild("InventoryWindow").GetComponent<Canvas>();
+        inventoryGridLayout = inventoryWindow.GetComponentInChildren<GridLayoutGroup>();
+        inventoryWindowActive = false;
+        inventoryWindow.gameObject.SetActive(inventoryWindowActive);
+        buttonPrefab = Resources.Load<GameObject>("InventoryItemButton");
     }
 
     public void TakeDamage(int damageTaken)
     {
         player.stats.Health = -damageTaken;
+
+        // TODO: Damage numbers
+
         if(player.stats.Health <= 0)
         {
-            // Die, Respawn, Game Over...? You choose
+            // TODO: Die, Respawn, Game Over...?
+
+            gameObject.SetActive(false);
             Debug.Log("Player Died!");
         }
     }
@@ -92,6 +99,8 @@ public class PlayerController : MonoBehaviour
         // Sprint!
         if (Input.GetButtonDown("Sprint"))
             player.stats.Speed = originalSpeed * 2;
+
+        // Stop sprinting
         if (Input.GetButtonUp("Sprint"))
             player.stats.Speed = originalSpeed;
 
@@ -107,11 +116,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Pickup items, pull levers, press buttons, etc
     void InteractWithWorld()
     {
         if(Input.GetKey(KeyCode.E))
         {
-            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(new Vector2(playerGO.transform.position.x, playerGO.transform.position.y), player.stats.PickupRadius);
+            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y), player.stats.PickupRadius);
             foreach(var item in hitColliders.Where(i => i.tag != "Player")) // all game objects besides player
             {
                 if(item.tag == "InventoryItem")
@@ -126,7 +136,7 @@ public class PlayerController : MonoBehaviour
                     if (player.inventory.AddItemToInventory(newItem))
                     {
                         // Add to / display in Inventory
-                        GameObject newItemBtn = (GameObject)Instantiate(btnPrefab, inventoryGridLayout.transform, false);
+                        GameObject newItemBtn = (GameObject)Instantiate(buttonPrefab, inventoryGridLayout.transform, false);
                         
                         var btnItem = newItemBtn.GetComponent<InventoryItem>();
                         var btnSprite = newItemBtn.GetComponent<Image>();
@@ -146,19 +156,22 @@ public class PlayerController : MonoBehaviour
                 }
                 else
                 {
+                    // Cannot pick this thing up
                     Debug.Log("There's an interesting " + item.name + " next to me. I don't think this will fit in my pockets.");
                 }
             }
         }
     }
 
+
+    // Open/close menus
     void InteractWithMenu()
     {
         // Toggle Inventory Window
-        if(Input.GetKey(KeyCode.I))
+        if(Input.GetKeyDown(KeyCode.I))
         {
             inventoryWindowActive = !inventoryWindowActive;
-            InventoryWindow.gameObject.SetActive(inventoryWindowActive);
+            inventoryWindow.gameObject.SetActive(inventoryWindowActive);
         }
     }
 }
