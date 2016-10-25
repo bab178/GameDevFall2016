@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace GameDevFall2016.Scripts.InventoryManagement
 {
@@ -22,6 +23,19 @@ namespace GameDevFall2016.Scripts.InventoryManagement
             }
         }
 
+        public bool IsFull
+        {
+            get
+            {
+                return CurrentItemCount >= _maxItemCount;
+            }
+        }
+
+        public bool ContainsItemWithId(int id)
+        {
+            return Items.Select(i => i.Id).Contains(id);
+        }
+
         public List<InventoryItem> Items;
         public Inventory()
         {
@@ -30,13 +44,26 @@ namespace GameDevFall2016.Scripts.InventoryManagement
 
         public bool AddItemToInventory(InventoryItem itemToAdd)
         {
-            if (CurrentItemCount < _maxItemCount)
+            bool containsId = ContainsItemWithId(itemToAdd.Id);
+
+            if (!IsFull || containsId)
             {
-                Items.Add(itemToAdd);
-                return true;
+                if(containsId)
+                {
+                    // Stack items with same id together
+                    Items.FirstOrDefault(i => i.Id == itemToAdd.Id).Quantity += itemToAdd.Quantity;
+                    return true;
+                }
+                else
+                {
+                    // Take up a new inventory slot
+                    Items.Add(itemToAdd);
+                    return false;
+                }
             }
             else
             {
+                // No room and nothing stacks
                 return false;
             }
         }
