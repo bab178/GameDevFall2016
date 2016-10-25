@@ -126,27 +126,54 @@ public class PlayerController : MonoBehaviour
             {
                 if(item.tag == "InventoryItem")
                 {
-                    // Create InventoryItem from GameObject
-                    InventoryItem newItem = item.GetComponent<InventoryItem>();
-                    newItem.Sprite = item.GetComponent<SpriteRenderer>().sprite;
-                    newItem.Name = item.name;
-                    newItem.Quantity = 1;
-                    newItem.FlavorText = "Some kind of " + item.name;
+                    InventoryItem invItem = item.GetComponent<InventoryItem>();
+                    invItem.Quantity = Random.Range(1, 10); // Sets random quantity in range
 
-                    if (player.inventory.AddItemToInventory(newItem))
+                    if (!player.inventory.IsFull)
                     {
-                        // Add to / display in Inventory
-                        GameObject newItemBtn = (GameObject)Instantiate(buttonPrefab, inventoryGridLayout.transform, false);
-                        
-                        var btnItem = newItemBtn.GetComponent<InventoryItem>();
-                        var btnSprite = newItemBtn.GetComponent<Image>();
-                        btnSprite.sprite = newItem.Sprite;
-                        Text btnText = newItemBtn.transform.GetChild(0).GetComponent<Text>();
-                        btnText.text = newItem.Quantity.ToString();
+                        bool wasStacked = player.inventory.AddItemToInventory(invItem);
+
+                        if(!wasStacked)
+                        {
+                            // Add to / display in Inventory
+                            GameObject newItemBtn = (GameObject)Instantiate(buttonPrefab, inventoryGridLayout.transform, false);
+
+                            // Set inventoryItem of button
+                            InventoryItem btnItem = newItemBtn.GetComponent<InventoryItem>();
+                            btnItem.Id = invItem.Id;
+                            btnItem.Sprite = invItem.Sprite;
+                            btnItem.Name = invItem.Name;
+                            btnItem.Quantity = invItem.Quantity;
+                            btnItem.FlavorText = invItem.FlavorText;
+
+                            // Set sprite in inventory
+                            Image btnSprite = newItemBtn.GetComponent<Image>();
+                            btnSprite.sprite = invItem.Sprite;
+
+                            // Set quantity text in inventory
+                            Text btnText = newItemBtn.transform.GetChild(0).GetComponent<Text>();
+                            btnText.text = invItem.Quantity.ToString();
+                        }
+                        else
+                        {
+                            // Get inventoryItem on button
+                            InventoryItem btnItemScript = inventoryGridLayout
+                                .gameObject.transform.GetComponentsInChildren<InventoryItem>()
+                                .FirstOrDefault(i => i.Id == invItem.Id);
+
+                            if (btnItemScript == null) return;
+
+                            // Stack items
+                            btnItemScript.Quantity += invItem.Quantity;
+
+                            // Set quantity text in inventory to addition of quantities
+                            Text btnText = btnItemScript.gameObject.transform.GetChild(0).GetComponent<Text>();
+                            btnText.text = (btnItemScript.Quantity).ToString();
+                        }
 
                         // Remove item from scene
                         Destroy(item.gameObject);
-                        Debug.Log("+" + newItem.Quantity + " " + newItem.Name);
+                        Debug.Log("+" + invItem.Quantity + " " + invItem.Name);
                     }
                     else
                     {
