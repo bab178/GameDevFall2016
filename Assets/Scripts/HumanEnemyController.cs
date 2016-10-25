@@ -9,6 +9,8 @@ public class HumanEnemyController : MonoBehaviour {
     public bool stand;
     public bool chase;
 
+    public int enemy_health=20;
+
     public float moveSpeed;
 
     private Rigidbody2D myRigidbody;
@@ -67,6 +69,12 @@ public class HumanEnemyController : MonoBehaviour {
                 Roam();
             else if (patrol)
                 Patrol();
+        }
+
+        if(enemy_health<=0)
+        {
+            Debug.Log("------------->OW!");
+            Destroy(gameObject);
         }
     }
 
@@ -157,4 +165,17 @@ public class HumanEnemyController : MonoBehaviour {
             transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
         }
     }
+
+
+
+    public void TakeDamage(int dmg)
+    {
+        enemy_health = enemy_health - dmg;
+
+        Debug.Log("*Enemy-Hit*");
+
+    }
+
+
+
 }
