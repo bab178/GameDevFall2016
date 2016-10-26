@@ -143,7 +143,7 @@ public class PlayerController : MonoBehaviour
                 if(item.tag == "InventoryItem")
                 {
                     InventoryItem invItem = item.GetComponent<InventoryItem>();
-                    invItem.Quantity = Random.Range(1, 10); // Sets random quantity in range
+                    if(invItem.Id == 1) invItem.Quantity = Random.Range(1, 10); // Sets random quantity in range
 
                     if (!player.inventory.IsFull)
                     {
@@ -196,6 +196,27 @@ public class PlayerController : MonoBehaviour
                         // Inventory is full
                         Debug.Log("My pockets are too full... I only have " + player.inventory.MaxItemCount + " spots.");
                     }
+                }
+                else if (item.tag == "LockedDoor")
+                {
+                    var keyId = 2;
+                    PlayerInventory.RemoveItem(keyId, 1);
+
+                    // Get inventoryItem on button
+                    InventoryItem btnItemScript = inventoryGridLayout
+                        .gameObject.transform.GetComponentsInChildren<InventoryItem>()
+                        .FirstOrDefault(i => i.Id == keyId);
+
+                    // destroy key
+                    Destroy(btnItemScript.gameObject);
+                    
+                    // remove sprite
+                    item.GetComponent<SpriteRenderer>().sprite = null;
+
+                    // destroy door
+                    Destroy(item);
+
+                    Debug.Log("Door unlocked!!!");
                 }
                 else
                 {

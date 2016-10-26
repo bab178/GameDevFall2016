@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace GameDevFall2016.Scripts.InventoryManagement
@@ -65,6 +66,23 @@ namespace GameDevFall2016.Scripts.InventoryManagement
             {
                 // No room and nothing stacks
                 return false;
+            }
+        }
+
+        public void RemoveItem(int id, int quantity)
+        {
+            var item = Items.FirstOrDefault(i => i.Id == id);
+
+            // Not found
+            if (item == null) return;
+
+            // remove quantity
+            item.Quantity -= quantity;
+
+            // Remove if all are gone
+            if (item.Quantity <= 0)
+            {
+                Items.Remove(item);
             }
         }
     }
