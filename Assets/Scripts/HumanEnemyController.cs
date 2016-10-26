@@ -62,8 +62,9 @@ public class HumanEnemyController : MonoBehaviour {
     {
         if (other.gameObject.tag == "Player")
         {
+            other.gameObject.GetComponent<PlayerController>().TakeDamage(1);
             //Destroy(other.gameObject);
-            other.gameObject.SetActive(false);
+            //other.gameObject.SetActive(false);
         }
     }
 

@@ -16,6 +16,8 @@ public class PlayerController : MonoBehaviour
     private GridLayoutGroup inventoryGridLayout;
     private bool inventoryWindowActive;
     private GameObject buttonPrefab;
+    float dmgCooldown = 0.2f;
+    float noDieTimer;
 
     [System.Serializable]
     public class Player
@@ -57,6 +59,7 @@ public class PlayerController : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        noDieTimer = dmgCooldown;
         rb = gameObject.GetComponent<Rigidbody2D>();
         player = new Player(PlayerStats, PlayerInventory);
         originalSpeed = player.stats.Speed;
@@ -70,16 +73,24 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage(int damageTaken)
     {
-        player.stats.Health = -damageTaken;
+        noDieTimer -= Time.deltaTime;
 
-        // TODO: Damage numbers
+        // TODO: Flicker for no die?
 
-        if(player.stats.Health <= 0)
+        if(noDieTimer <= 0f)
         {
-            // TODO: Die, Respawn, Game Over...?
+            player.stats.Health -= damageTaken;
+            noDieTimer = dmgCooldown;
 
-            gameObject.SetActive(false);
-            Debug.Log("Player Died!");
+            // TODO: Damage numbers
+
+            if (player.stats.Health <= 0)
+            {
+                // TODO: Die, Respawn, Game Over...?
+
+                gameObject.SetActive(false);
+                Debug.Log("Player Died!");
+            }
         }
     }
 
@@ -119,6 +130,11 @@ public class PlayerController : MonoBehaviour
     // Pickup items, pull levers, press buttons, etc
     void InteractWithWorld()
     {
+        if(Input.GetKey(KeyCode.G))
+        {
+            TakeDamage(1);
+        }
+
         if(Input.GetKey(KeyCode.E))
         {
             Collider2D[] hitColliders = Physics2D.OverlapCircleAll(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y), player.stats.PickupRadius);
