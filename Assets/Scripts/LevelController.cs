@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
+
 public class LevelController : MonoBehaviour {
 
     [System.Serializable]
@@ -17,6 +19,14 @@ public class LevelController : MonoBehaviour {
     void Start()
     {
         LoadMap();
+    }
+
+    void Update()
+    {
+        if (Input.GetAxis("ReloadScene") > 0f)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     }
 
     void EmptyMap()
