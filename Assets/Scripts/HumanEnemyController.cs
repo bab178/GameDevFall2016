@@ -29,9 +29,13 @@ public class HumanEnemyController : MonoBehaviour {
     public Transform[] patrolPoints;
     private int currentPoint;
 
+    private GameObject player;
+
     // Use this for initialization
     void Start()
     {
+        player = GameObject.FindGameObjectWithTag("Player").gameObject;
+
         if (roam)
         {
             patrol = false;
@@ -63,6 +67,11 @@ public class HumanEnemyController : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
+        if (player == null)
+        {
+            player = GameObject.FindGameObjectWithTag("Player").gameObject;
+        }
+
         if (!Chase())
         {
             if (roam)
@@ -80,9 +89,10 @@ public class HumanEnemyController : MonoBehaviour {
 
     bool Chase()
     {
-        if (Vector3.Distance(GameObject.FindGameObjectWithTag("Player").gameObject.transform.position, this.transform.position) < lockOnRange)
+        if (player == null) return false;
+        if (Vector3.Distance(player.transform.position, this.transform.position) < lockOnRange)
         {
-            Vector3 direction = GameObject.FindGameObjectWithTag("Player").gameObject.transform.position - this.transform.position;
+            Vector3 direction = player.transform.position - this.transform.position;
 
             if (direction.magnitude > 0.5f)
             {
