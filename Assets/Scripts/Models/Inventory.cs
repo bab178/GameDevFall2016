@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace GameDevFall2016.Scripts.InventoryManagement
+namespace Assets.Scripts.Models
 {
     [System.Serializable]
     public class Inventory

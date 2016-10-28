@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace GameDevFall2016.Scripts.InventoryManagement
+namespace Assets.Scripts.Models
 {
     [System.Serializable]
     public class InventoryItem : MonoBehaviour

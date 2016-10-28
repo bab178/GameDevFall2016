@@ -1,32 +1,34 @@
 ﻿using UnityEngine;
-using System.Collections;
 
-public class Pickup : MonoBehaviour {
-
-    public enum PickupType { Health, Mana, Gold };
-
-    public PickupType pickupType;
-
-    public int Magnitude;
-
-    void OnTriggerEnter2D(Collider2D other)
+namespace Assets.Scripts
+{
+    public class Pickup : MonoBehaviour
     {
-        if (other.gameObject.tag == "Player")
+        public enum PickupType { Health, Mana, Gold };
+
+        public PickupType pickupType;
+
+        public int Magnitude;
+
+        void OnTriggerEnter2D(Collider2D other)
         {
-            PlayerController playerController = other.gameObject.GetComponent<PlayerController>();
-
-            if (pickupType == PickupType.Health)
+            if (other.gameObject.tag == "Player")
             {
-                playerController.PlayerStats.Health += Magnitude;
-                Destroy(gameObject);
-            }
-            else if (pickupType == PickupType.Gold)
-            {
+                PlayerController playerController = other.gameObject.GetComponent<PlayerController>();
 
-            }
-            else if (pickupType == PickupType.Mana)
-            {
+                if (pickupType == PickupType.Health)
+                {
+                    playerController.HealPlayer(Magnitude);
+                    Destroy(gameObject);
+                }
+                else if (pickupType == PickupType.Gold)
+                {
 
+                }
+                else if (pickupType == PickupType.Mana)
+                {
+
+                }
             }
         }
     }
