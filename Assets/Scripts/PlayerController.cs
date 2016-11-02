@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
 {
     public Stats PlayerStats;
     public Inventory PlayerInventory;
+    public GameObject damageText;
 
     private Player player;
     private Rigidbody2D rb;
@@ -16,6 +17,7 @@ public class PlayerController : MonoBehaviour
     private GridLayoutGroup inventoryGridLayout;
     private bool inventoryWindowActive;
     private GameObject buttonPrefab;
+    private Object clone;
     float dmgCooldown = 0.2f;
     float noDieTimer;
 
@@ -81,8 +83,11 @@ public class PlayerController : MonoBehaviour
         {
             player.stats.Health -= damageTaken;
             noDieTimer = dmgCooldown;
+            clone = Instantiate(damageText, transform.position + (transform.forward * 2), transform.rotation);
+            Destroy(clone, 1);
 
-            // TODO: Damage numbers
+            // TODO:         Correct number positioning
+            //               assign number to damage taken
 
             if (player.stats.Health <= 0)
             {
