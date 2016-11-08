@@ -19,6 +19,8 @@ namespace Assets.Scripts
         private Canvas inventoryWindow;
         private GridLayoutGroup inventoryGridLayout;
         private bool inventoryWindowActive;
+        private Canvas equipWindow;
+        private bool equipWindowActive;
         private GameObject buttonPrefab;
         private float dmgCooldown = 0.15f;
         private float noDieTimer;
@@ -41,6 +43,11 @@ namespace Assets.Scripts
             inventoryGridLayout = inventoryWindow.GetComponentInChildren<GridLayoutGroup>();
             inventoryWindowActive = false;
             inventoryWindow.gameObject.SetActive(inventoryWindowActive);
+
+            equipWindow = transform.FindChild("EquipmentWindow").GetComponent<Canvas>();
+            equipWindowActive = false;
+            equipWindow.gameObject.SetActive(equipWindowActive);
+
             buttonPrefab = Resources.Load<GameObject>("InventoryItemButton");
         }
 
@@ -115,12 +122,12 @@ namespace Assets.Scripts
         // Pickup items, pull levers, press buttons, etc
         void InteractWithWorld()
         {
-            if (Input.GetKey(KeyCode.G))
+            if (Input.GetKeyDown(KeyCode.G))
             {
                 TakeDamage(1);
             }
 
-            if (Input.GetKey(KeyCode.E))
+            if (Input.GetKeyDown(KeyCode.E))
             {
                 Collider2D[] hitColliders = Physics2D.OverlapCircleAll(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y), PlayerStats.PickupRadius);
                 foreach (var item in hitColliders.Where(i => i.tag != "Player")) // all game objects besides player
@@ -220,6 +227,13 @@ namespace Assets.Scripts
             {
                 inventoryWindowActive = !inventoryWindowActive;
                 inventoryWindow.gameObject.SetActive(inventoryWindowActive);
+            }
+
+            // Toggle Equipment Window
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                equipWindowActive = !equipWindowActive;
+                equipWindow.gameObject.SetActive(equipWindowActive);
             }
         }
     }
