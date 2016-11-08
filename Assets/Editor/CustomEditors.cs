@@ -27,8 +27,11 @@ namespace Assets.EditorScripts
                 cachedEditorNeedsRefresh = false;
             }
 
-            base.OnInspectorGUI();
-            cachedEditor.DrawDefaultInspector();
+            if(cachedEditor != null)
+            {
+                base.OnInspectorGUI();
+                cachedEditor.DrawDefaultInspector();
+            }
         }
     }
 
@@ -48,7 +51,7 @@ namespace Assets.EditorScripts
         {
             HumanEnemyController hec = (HumanEnemyController)target;
 
-            if (cachedEditorNeedsRefresh)
+            if (cachedEditorNeedsRefresh && hec != null)
             {
                 cachedEditor = Editor.CreateEditor(hec.EnemyStats);
 
@@ -56,8 +59,11 @@ namespace Assets.EditorScripts
                 cachedEditorNeedsRefresh = false;
             }
 
-            base.OnInspectorGUI();
-            cachedEditor.DrawDefaultInspector();
+            if (cachedEditor != null)
+            {
+                base.OnInspectorGUI();
+                cachedEditor.DrawDefaultInspector();
+            }
         }
     }
 }
