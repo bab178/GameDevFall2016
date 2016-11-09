@@ -92,7 +92,7 @@ namespace Assets.Scripts
             }
 
             // If we got to this point, it means we did not find a matching color in our array.
-            Debug.LogError("No color to prefab found for: " + c.ToString());
+            Debug.LogError(string.Concat("No color to prefab found for: ", c, " at: ", " (", x, ", ", y, ")"));
         }
     }
 }

@@ -12,6 +12,8 @@ namespace Assets.Scripts
         [HideInInspector]
         public Inventory PlayerInventory;
 
+        public bool AutoEquipIfEmpty;
+
         private Rigidbody2D rb;
         private int originalHealth;
         private float originalSpeed;
@@ -49,6 +51,8 @@ namespace Assets.Scripts
             equipWindow.gameObject.SetActive(equipWindowActive);
 
             buttonPrefab = Resources.Load<GameObject>("InventoryItemButton");
+
+            AutoEquipIfEmpty = true;
         }
 
         public void HealPlayer(int healthRestored)
@@ -130,85 +134,19 @@ namespace Assets.Scripts
             if (Input.GetKeyDown(KeyCode.E))
             {
                 Collider2D[] hitColliders = Physics2D.OverlapCircleAll(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y), PlayerStats.PickupRadius);
-                foreach (var item in hitColliders.Where(i => i.tag != "Player")) // all game objects besides player
+                foreach (Collider2D item in hitColliders.Where(i => i.tag != "Player")) // all game objects besides player
                 {
                     if (item.tag == "InventoryItem")
                     {
-                        InventoryItem invItem = item.GetComponent<InventoryItem>();
-                        if (invItem.Id == 1) invItem.Quantity = Random.Range(1, 10); // Sets random quantity in range
-
-                        if (!PlayerInventory.IsFull)
-                        {
-                            bool wasStacked = PlayerInventory.AddItemToInventory(invItem);
-
-                            if (!wasStacked)
-                            {
-                                // Add to / display in Inventory
-                                GameObject newItemBtn = (GameObject)Instantiate(buttonPrefab, inventoryGridLayout.transform, false);
-
-                                // Set inventoryItem of button
-                                InventoryItem btnItem = newItemBtn.GetComponent<InventoryItem>();
-                                btnItem.Id = invItem.Id;
-                                btnItem.Sprite = invItem.Sprite;
-                                btnItem.Name = invItem.Name;
-                                btnItem.Quantity = invItem.Quantity;
-                                btnItem.FlavorText = invItem.FlavorText;
-
-                                // Set sprite in inventory
-                                Image btnSprite = newItemBtn.GetComponent<Image>();
-                                btnSprite.sprite = invItem.Sprite;
-
-                                // Set quantity text in inventory
-                                Text btnText = newItemBtn.transform.GetChild(0).GetComponent<Text>();
-                                btnText.text = invItem.Quantity.ToString();
-                            }
-                            else
-                            {
-                                // Get inventoryItem on button
-                                InventoryItem btnItemScript = inventoryGridLayout
-                                    .gameObject.transform.GetComponentsInChildren<InventoryItem>()
-                                    .FirstOrDefault(i => i.Id == invItem.Id);
-
-                                if (btnItemScript == null) return;
-
-                                // Stack items
-                                btnItemScript.Quantity += invItem.Quantity;
-
-                                // Set quantity text in inventory to addition of quantities
-                                Text btnText = btnItemScript.gameObject.transform.GetChild(0).GetComponent<Text>();
-                                btnText.text = (btnItemScript.Quantity).ToString();
-                            }
-
-                            // Remove item from scene
-                            Destroy(item.gameObject);
-                            Debug.Log("+" + invItem.Quantity + " " + invItem.Name);
-                        }
-                        else
-                        {
-                            // Inventory is full
-                            Debug.Log("My pockets are too full... I only have " + PlayerInventory.MaxItemCount + " spots.");
-                        }
+                        ManageInventoryItems(item);   
+                    }
+                    else if (item.tag == "EquipmentItem")
+                    {
+                        ManageEquipmentItems(item);
                     }
                     else if (item.tag == "LockedDoor")
                     {
-                        var keyId = 2;
-                        PlayerInventory.RemoveItem(keyId, 1);
-
-                        // Get inventoryItem on button
-                        InventoryItem btnItemScript = inventoryGridLayout
-                            .gameObject.transform.GetComponentsInChildren<InventoryItem>()
-                            .FirstOrDefault(i => i.Id == keyId);
-
-                        // destroy key
-                        Destroy(btnItemScript.gameObject);
-
-                        // remove sprite
-                        item.GetComponent<SpriteRenderer>().sprite = null;
-
-                        // destroy door
-                        Destroy(item);
-
-                        Debug.Log("Door unlocked!!!");
+                        ManageLockedDoors(item);
                     }
                     else
                     {
@@ -235,6 +173,145 @@ namespace Assets.Scripts
                 equipWindowActive = !equipWindowActive;
                 equipWindow.gameObject.SetActive(equipWindowActive);
             }
+        }
+
+        void ManageInventoryItems(Collider2D item)
+        {
+            InventoryItem invItem = item.GetComponent<InventoryItem>();
+            if (invItem.Id == 1) invItem.Quantity = Random.Range(1, 10); // Sets random quantity in range
+
+            if (!PlayerInventory.IsFull)
+            {
+                bool wasStacked = PlayerInventory.AddItemToInventory(invItem);
+
+                if (!wasStacked)
+                {
+                    // Add to / display in Inventory
+                    GameObject newItemBtn = (GameObject)Instantiate(buttonPrefab, inventoryGridLayout.transform, false);
+
+                    // Set inventoryItem of button
+                    InventoryItem btnItem = newItemBtn.GetComponent<InventoryItem>();
+                    btnItem.Id = invItem.Id;
+                    btnItem.Sprite = invItem.Sprite;
+                    btnItem.Name = invItem.Name;
+                    btnItem.Quantity = invItem.Quantity;
+                    btnItem.FlavorText = invItem.FlavorText;
+
+                    // Set sprite in inventory
+                    Image btnSprite = newItemBtn.GetComponent<Image>();
+                    btnSprite.sprite = invItem.Sprite;
+
+                    // Set quantity text in inventory
+                    Text btnText = newItemBtn.transform.GetChild(0).GetComponent<Text>();
+                    btnText.text = invItem.Quantity.ToString();
+                }
+                else
+                {
+                    // Get inventoryItem on button
+                    InventoryItem btnItemScript = inventoryGridLayout
+                        .gameObject.transform.GetComponentsInChildren<InventoryItem>()
+                        .FirstOrDefault(i => i.Id == invItem.Id);
+
+                    if (btnItemScript == null) return;
+
+                    // Stack items
+                    btnItemScript.Quantity += invItem.Quantity;
+
+                    // Set quantity text in inventory to addition of quantities
+                    Text btnText = btnItemScript.gameObject.transform.GetChild(0).GetComponent<Text>();
+                    btnText.text = (btnItemScript.Quantity).ToString();
+                }
+
+                // Remove item from scene
+                Destroy(item.gameObject);
+                Debug.Log("+" + invItem.Quantity + " " + invItem.Name);
+            }
+            else
+            {
+                // Inventory is full
+                Debug.Log("My pockets are too full... I only have " + PlayerInventory.MaxItemCount + " spots.");
+            }
+        }
+
+        void ManageEquipmentItems(Collider2D item)
+        {
+            var itemInfo = item.GetComponent<InventoryItem>();
+
+            if (itemInfo == null)
+            {
+                Debug.LogError("An EquipmentItem could not be parsed out of this item: " + item.name);
+                return;
+            }
+
+            if (itemInfo.EquipType == EquipType.None)
+            {
+                Debug.LogError("An EquipmentItem has a type of None, cannot be equipped");
+                return;
+            }
+
+            if(PlayerInventory.IsEquipmentSlotEmpty(itemInfo.EquipType) && AutoEquipIfEmpty)
+            {
+                // Auto equip item to slot
+                PlayerInventory.EquipItemAtSlot(PlayerInventory, itemInfo);
+
+                var parentPanel = equipWindow.transform.FindChild("Panel");
+
+                GameObject child = null;
+
+                // Update equipment GUI
+                switch(itemInfo.EquipType)
+                {
+                    case EquipType.Head:
+                        child = parentPanel.FindChild("Head").gameObject;
+                        break;
+                    case EquipType.Top:
+                        child = parentPanel.FindChild("Top").gameObject;
+                        break;
+                    case EquipType.Bottom:
+                        child = parentPanel.FindChild("Bottom").gameObject;
+                        break;
+                    case EquipType.Hands:
+                        child = parentPanel.FindChild("Hands").gameObject;
+                        break;
+                    case EquipType.Feet:
+                        child = parentPanel.FindChild("Feet").gameObject;
+                        break;
+                }
+
+                // set image
+                var img = child.transform.FindChild("Button").gameObject.GetComponent<Image>();
+                img.sprite = itemInfo.Sprite;
+
+                item.GetComponent<SpriteRenderer>().sprite = null;
+                Destroy(item);
+            }
+            else
+            {
+                // Send to Inventory
+                ManageInventoryItems(item);
+            }
+        }
+
+        void ManageLockedDoors(Collider2D item)
+        {
+            var keyId = 2;
+            PlayerInventory.RemoveItem(keyId, 1);
+
+            // Get inventoryItem on button
+            InventoryItem btnItemScript = inventoryGridLayout
+                .gameObject.transform.GetComponentsInChildren<InventoryItem>()
+                .FirstOrDefault(i => i.Id == keyId);
+
+            // destroy key
+            Destroy(btnItemScript.gameObject);
+
+            // remove sprite
+            item.GetComponent<SpriteRenderer>().sprite = null;
+
+            // destroy door
+            Destroy(item);
+
+            Debug.Log("Door unlocked!!!");
         }
     }
 }

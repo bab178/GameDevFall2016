@@ -40,11 +40,6 @@ namespace Assets.Scripts.Models
             }
         }
 
-        public bool ContainsItemWithId(int id)
-        {
-            return Items.Select(i => i.Id).Contains(id);
-        }
-
         public List<InventoryItem> Items { get; private set; }
         public InventoryItem[] Equipment { get; private set; }
 
@@ -61,6 +56,16 @@ namespace Assets.Scripts.Models
         #endregion
 
         #region Public Methods
+
+        public bool ContainsItemWithId(int id)
+        {
+            return Items.Select(i => i.Id).Contains(id);
+        }
+
+        public bool IsEquipmentSlotEmpty(EquipType type)
+        {
+            return Equipment[Convert.ToInt32(type)] == null;
+        }
 
         public bool AddItemToInventory(InventoryItem itemToAdd)
         {
