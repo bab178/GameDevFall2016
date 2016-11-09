@@ -67,13 +67,13 @@ namespace Assets.Scripts.Models
             return Equipment[Convert.ToInt32(type)] == null;
         }
 
-        public bool AddItemToInventory(InventoryItem itemToAdd)
+        public bool AddItemToInventory(InventoryItem itemToAdd, bool shouldTryStack = true)
         {
             bool containsId = ContainsItemWithId(itemToAdd.Id);
 
             if (!IsFull || containsId)
             {
-                if(containsId)
+                if(containsId && shouldTryStack)
                 {
                     // Stack items with same id together
                     Items.FirstOrDefault(i => i.Id == itemToAdd.Id).Quantity += itemToAdd.Quantity;
@@ -123,22 +123,22 @@ namespace Assets.Scripts.Models
         public void EquipItemAtSlot(Inventory inv, InventoryItem itemToEquip)
         {
             // Not equipment / cannot equip
-            if (itemToEquip.EquipType != EquipType.None) return;
+            if (itemToEquip.EquipType == EquipType.None) return;
 
             var slot = Convert.ToInt32(itemToEquip.EquipType);
 
             // Nothing worn, Equip to slot
-            if (Equipment[slot] == null)
+            if (inv.Equipment[slot] == null)
             {
-                Equipment[slot] = itemToEquip;
+                inv.Equipment[slot] = itemToEquip;
                 inv.RemoveItem(itemToEquip);
             }
             // Need to swap equipment
             else
             {
                 // Swap items
-                var itemToUnequip = Equipment[slot];
-                Equipment[slot] = itemToEquip;
+                var itemToUnequip = inv.Equipment[slot];
+                inv.Equipment[slot] = itemToEquip;
                 inv.RemoveItem(itemToEquip);
 
                 // put the unequipped item back in the inventory

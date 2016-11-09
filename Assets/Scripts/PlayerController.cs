@@ -175,14 +175,14 @@ namespace Assets.Scripts
             }
         }
 
-        void ManageInventoryItems(Collider2D item)
+        void ManageInventoryItems(Collider2D item, bool shouldTryStack = true)
         {
             InventoryItem invItem = item.GetComponent<InventoryItem>();
             if (invItem.Id == 1) invItem.Quantity = Random.Range(1, 10); // Sets random quantity in range
 
             if (!PlayerInventory.IsFull)
             {
-                bool wasStacked = PlayerInventory.AddItemToInventory(invItem);
+                bool wasStacked = PlayerInventory.AddItemToInventory(invItem, shouldTryStack);
 
                 if (!wasStacked)
                 {
@@ -288,7 +288,7 @@ namespace Assets.Scripts
             else
             {
                 // Send to Inventory
-                ManageInventoryItems(item);
+                ManageInventoryItems(item, false);
             }
         }
 
