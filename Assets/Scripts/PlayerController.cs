@@ -1,241 +1,319 @@
-﻿using GameDevFall2016.Scripts.InventoryManagement;
+﻿using Assets.Scripts.Models;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerController : MonoBehaviour
+namespace Assets.Scripts
 {
-    public Stats PlayerStats;
-    public Inventory PlayerInventory;
-
-    private Player player;
-    private Rigidbody2D rb;
-    private float originalSpeed;
-
-    private Canvas inventoryWindow;
-    private GridLayoutGroup inventoryGridLayout;
-    private bool inventoryWindowActive;
-    private GameObject buttonPrefab;
-    float dmgCooldown = 0.2f;
-    float noDieTimer;
-
-    [System.Serializable]
-    public class Player
+    public class PlayerController : MonoBehaviour
     {
-        public Stats stats;
-        public Inventory inventory;
+        [HideInInspector]
+        public Stats PlayerStats;
+        [HideInInspector]
+        public Inventory PlayerInventory;
 
-        public Player(Stats setStats, Inventory setInventory)
+        public bool AutoEquipIfEmpty;
+
+        private Rigidbody2D rb;
+        private int originalHealth;
+        private float originalSpeed;
+
+        private Canvas inventoryWindow;
+        private GridLayoutGroup inventoryGridLayout;
+        private bool inventoryWindowActive;
+        private Canvas equipWindow;
+        private bool equipWindowActive;
+        private GameObject buttonPrefab;
+        private float dmgCooldown = 0.15f;
+        private float noDieTimer;
+
+        void Start()
         {
-            // Set stats to default values if they go below 0
-            if (setStats.Health <= 0)
-            {
-                setStats.Health = 10;
-            }
+            PlayerStats = ScriptableObject.CreateInstance<Stats>();
+            PlayerStats.SetStats(100, 5f, 5, 0.5f, 1.5f);
+            gameObject.transform.localScale = new Vector3(PlayerStats.Scale, PlayerStats.Scale, 1f);
 
-            if (setStats.Speed <= 0)
-            {
-                setStats.Speed = 5;
-            }
+            originalHealth = PlayerStats.Health;
+            originalSpeed = PlayerStats.Speed;
 
-            inventory = setInventory;
-            stats = setStats;
-        }
-    }
+            PlayerInventory = new Inventory();
+            rb = gameObject.GetComponent<Rigidbody2D>();
 
-    [System.Serializable]
-    public class Stats
-    {
-        public float PickupRadius
-        {
-            get { return 0.5f; } // returns one value
-            protected set { } // prevents PickupRadius from being overwritten
-        }
-
-        public int Health;
-        public float Speed;
-    }
-
-    // Use this for initialization
-    void Start()
-    {
-        noDieTimer = dmgCooldown;
-        rb = gameObject.GetComponent<Rigidbody2D>();
-        player = new Player(PlayerStats, PlayerInventory);
-        originalSpeed = player.stats.Speed;
-
-        inventoryWindow = transform.FindChild("InventoryWindow").GetComponent<Canvas>();
-        inventoryGridLayout = inventoryWindow.GetComponentInChildren<GridLayoutGroup>();
-        inventoryWindowActive = false;
-        inventoryWindow.gameObject.SetActive(inventoryWindowActive);
-        buttonPrefab = Resources.Load<GameObject>("InventoryItemButton");
-    }
-
-    public void TakeDamage(int damageTaken)
-    {
-        noDieTimer -= Time.deltaTime;
-
-        // TODO: Flicker for no die?
-
-        if(noDieTimer <= 0f)
-        {
-            player.stats.Health -= damageTaken;
             noDieTimer = dmgCooldown;
 
-            // TODO: Damage numbers
+            inventoryWindow = transform.FindChild("InventoryWindow").GetComponent<Canvas>();
+            inventoryGridLayout = inventoryWindow.GetComponentInChildren<GridLayoutGroup>();
+            inventoryWindowActive = false;
+            inventoryWindow.gameObject.SetActive(inventoryWindowActive);
 
-            if (player.stats.Health <= 0)
+            equipWindow = transform.FindChild("EquipmentWindow").GetComponent<Canvas>();
+            equipWindowActive = false;
+            equipWindow.gameObject.SetActive(equipWindowActive);
+
+            buttonPrefab = Resources.Load<GameObject>("InventoryItemButton");
+
+            AutoEquipIfEmpty = true;
+        }
+
+        public void HealPlayer(int healthRestored)
+        {
+            if (PlayerStats.Health + healthRestored >= originalHealth)
             {
-                // TODO: Die, Respawn, Game Over...?
-
-                gameObject.SetActive(false);
-                Debug.Log("Player Died!");
+                PlayerStats.Health = originalHealth;
+            }
+            else
+            {
+                PlayerStats.Health += healthRestored;
             }
         }
-    }
 
-    // Update is called once per frame
-    void FixedUpdate()
-    {
-        MovePlayer();
-        InteractWithWorld();
-        InteractWithMenu();
-    }
-
-    void MovePlayer()
-    {
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        float moveVertical = Input.GetAxis("Vertical");
-
-        // Sprint!
-        if (Input.GetButtonDown("Sprint"))
-            player.stats.Speed = originalSpeed * 2;
-
-        // Stop sprinting
-        if (Input.GetButtonUp("Sprint"))
-            player.stats.Speed = originalSpeed;
-
-        // Move player
-        Vector2 movement = new Vector2(moveHorizontal * player.stats.Speed, moveVertical * player.stats.Speed);
-        rb.velocity = movement;
-
-        // Rotate player in direction they're moving
-        if (movement != Vector2.zero)
+        public void TakeDamage(int damageTaken)
         {
-            float angle = Mathf.Atan2(movement.y, movement.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
-        }
-    }
+            noDieTimer -= Time.deltaTime;
 
-    // Pickup items, pull levers, press buttons, etc
-    void InteractWithWorld()
-    {
-        if(Input.GetKey(KeyCode.G))
-        {
-            TakeDamage(1);
-        }
+            // TODO: Flicker for no die?
 
-        if(Input.GetKey(KeyCode.E))
-        {
-            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y), player.stats.PickupRadius);
-            foreach(var item in hitColliders.Where(i => i.tag != "Player")) // all game objects besides player
+            if (noDieTimer <= 0f)
             {
-                if(item.tag == "InventoryItem")
+                PlayerStats.Health -= damageTaken;
+                noDieTimer = dmgCooldown;
+
+                // TODO: Damage numbers
+
+                if (PlayerStats.Health <= 0)
                 {
-                    InventoryItem invItem = item.GetComponent<InventoryItem>();
-                    if(invItem.Id == 1) invItem.Quantity = Random.Range(1, 10); // Sets random quantity in range
+                    // TODO: Die, Respawn, Game Over...?
 
-                    if (!player.inventory.IsFull)
+                    gameObject.SetActive(false);
+                    Debug.Log("Player Died!");
+                }
+            }
+        }
+
+        // Update is called once per frame
+        void FixedUpdate()
+        {
+            MovePlayer();
+            InteractWithWorld();
+            InteractWithMenu();
+        }
+
+        void MovePlayer()
+        {
+            float moveHorizontal = Input.GetAxis("Horizontal");
+            float moveVertical = Input.GetAxis("Vertical");
+
+            // Sprint!
+            if (Input.GetButtonDown("Sprint"))
+                PlayerStats.Speed = originalSpeed * 2;
+
+            // Stop sprinting
+            if (Input.GetButtonUp("Sprint"))
+                PlayerStats.Speed = originalSpeed;
+
+            // Move player
+            Vector2 movement = new Vector2(moveHorizontal * PlayerStats.Speed, moveVertical * PlayerStats.Speed);
+            rb.velocity = movement;
+
+            // Rotate player in direction they're moving
+            if (movement != Vector2.zero)
+            {
+                float angle = Mathf.Atan2(movement.y, movement.x) * Mathf.Rad2Deg;
+                transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            }
+        }
+
+        // Pickup items, pull levers, press buttons, etc
+        void InteractWithWorld()
+        {
+            if (Input.GetKeyDown(KeyCode.G))
+            {
+                TakeDamage(1);
+            }
+
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                Collider2D[] hitColliders = Physics2D.OverlapCircleAll(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y), PlayerStats.PickupRadius);
+                foreach (Collider2D item in hitColliders.Where(i => i.tag != "Player")) // all game objects besides player
+                {
+                    if (item.tag == "InventoryItem")
                     {
-                        bool wasStacked = player.inventory.AddItemToInventory(invItem);
-
-                        if(!wasStacked)
-                        {
-                            // Add to / display in Inventory
-                            GameObject newItemBtn = (GameObject)Instantiate(buttonPrefab, inventoryGridLayout.transform, false);
-
-                            // Set inventoryItem of button
-                            InventoryItem btnItem = newItemBtn.GetComponent<InventoryItem>();
-                            btnItem.Id = invItem.Id;
-                            btnItem.Sprite = invItem.Sprite;
-                            btnItem.Name = invItem.Name;
-                            btnItem.Quantity = invItem.Quantity;
-                            btnItem.FlavorText = invItem.FlavorText;
-
-                            // Set sprite in inventory
-                            Image btnSprite = newItemBtn.GetComponent<Image>();
-                            btnSprite.sprite = invItem.Sprite;
-
-                            // Set quantity text in inventory
-                            Text btnText = newItemBtn.transform.GetChild(0).GetComponent<Text>();
-                            btnText.text = invItem.Quantity.ToString();
-                        }
-                        else
-                        {
-                            // Get inventoryItem on button
-                            InventoryItem btnItemScript = inventoryGridLayout
-                                .gameObject.transform.GetComponentsInChildren<InventoryItem>()
-                                .FirstOrDefault(i => i.Id == invItem.Id);
-
-                            if (btnItemScript == null) return;
-
-                            // Stack items
-                            btnItemScript.Quantity += invItem.Quantity;
-
-                            // Set quantity text in inventory to addition of quantities
-                            Text btnText = btnItemScript.gameObject.transform.GetChild(0).GetComponent<Text>();
-                            btnText.text = (btnItemScript.Quantity).ToString();
-                        }
-
-                        // Remove item from scene
-                        Destroy(item.gameObject);
-                        Debug.Log("+" + invItem.Quantity + " " + invItem.Name);
+                        ManageInventoryItems(item);   
+                    }
+                    else if (item.tag == "EquipmentItem")
+                    {
+                        ManageEquipmentItems(item);
+                    }
+                    else if (item.tag == "LockedDoor")
+                    {
+                        ManageLockedDoors(item);
                     }
                     else
                     {
-                        // Inventory is full
-                        Debug.Log("My pockets are too full... I only have " + player.inventory.MaxItemCount + " spots.");
+                        // Cannot pick this thing up
+                        Debug.Log("There's an interesting " + item.name + " next to me. I don't think this will fit in my pockets.");
                     }
-                }
-                else if (item.tag == "LockedDoor")
-                {
-                    var keyId = 2;
-                    PlayerInventory.RemoveItem(keyId, 1);
-
-                    // Get inventoryItem on button
-                    InventoryItem btnItemScript = inventoryGridLayout
-                        .gameObject.transform.GetComponentsInChildren<InventoryItem>()
-                        .FirstOrDefault(i => i.Id == keyId);
-
-                    // destroy key
-                    Destroy(btnItemScript.gameObject);
-                    
-                    // remove sprite
-                    item.GetComponent<SpriteRenderer>().sprite = null;
-
-                    // destroy door
-                    Destroy(item);
-
-                    Debug.Log("Door unlocked!!!");
-                }
-                else
-                {
-                    // Cannot pick this thing up
-                    Debug.Log("There's an interesting " + item.name + " next to me. I don't think this will fit in my pockets.");
                 }
             }
         }
-    }
 
-
-    // Open/close menus
-    void InteractWithMenu()
-    {
-        // Toggle Inventory Window
-        if(Input.GetKeyDown(KeyCode.I))
+        // Open/close menus
+        void InteractWithMenu()
         {
-            inventoryWindowActive = !inventoryWindowActive;
-            inventoryWindow.gameObject.SetActive(inventoryWindowActive);
+            // Toggle Inventory Window
+            if (Input.GetKeyDown(KeyCode.I))
+            {
+                inventoryWindowActive = !inventoryWindowActive;
+                inventoryWindow.gameObject.SetActive(inventoryWindowActive);
+            }
+
+            // Toggle Equipment Window
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                equipWindowActive = !equipWindowActive;
+                equipWindow.gameObject.SetActive(equipWindowActive);
+            }
+        }
+
+        void ManageInventoryItems(Collider2D item, bool shouldTryStack = true)
+        {
+            InventoryItem invItem = item.GetComponent<InventoryItem>();
+            if (invItem.Id == 1) invItem.Quantity = Random.Range(1, 10); // Sets random quantity in range
+
+            bool containsId = PlayerInventory.ContainsItemWithId(invItem.Id);
+
+            if (!PlayerInventory.IsFull || containsId)   
+            {
+                bool wasStacked = PlayerInventory.AddItemToInventory(invItem, shouldTryStack);
+
+                if (!wasStacked)
+                {
+                    // Add to / display in Inventory
+                    GameObject newItemBtn = (GameObject)Instantiate(buttonPrefab, inventoryGridLayout.transform, false);
+
+                    // Set inventoryItem of button
+                    InventoryItem btnItem = newItemBtn.GetComponent<InventoryItem>();
+                    btnItem.Id = invItem.Id;
+                    btnItem.Sprite = invItem.Sprite;
+                    btnItem.Name = invItem.Name;
+                    btnItem.Quantity = invItem.Quantity;
+                    btnItem.FlavorText = invItem.FlavorText;
+
+                    // Set sprite in inventory
+                    Image btnSprite = newItemBtn.GetComponent<Image>();
+                    btnSprite.sprite = invItem.Sprite;
+
+                    // Set quantity text in inventory
+                    Text btnText = newItemBtn.transform.GetChild(0).GetComponent<Text>();
+                    btnText.text = invItem.Quantity.ToString();
+                }
+                else
+                {
+                    // Get inventoryItem on button
+                    InventoryItem btnItemScript = inventoryGridLayout
+                        .gameObject.transform.GetComponentsInChildren<InventoryItem>()
+                        .FirstOrDefault(i => i.Id == invItem.Id);
+
+                    if (btnItemScript == null) return;
+
+                    // Stack items
+                    btnItemScript.Quantity += invItem.Quantity;
+
+                    // Set quantity text in inventory to addition of quantities
+                    Text btnText = btnItemScript.gameObject.transform.GetChild(0).GetComponent<Text>();
+                    btnText.text = (btnItemScript.Quantity).ToString();
+                }
+
+                // Remove item from scene
+                Destroy(item.gameObject);
+                Debug.Log("+" + invItem.Quantity + " " + invItem.Name);
+            }
+            else
+            {
+                // Inventory is full
+                Debug.Log("My pockets are too full... I only have " + PlayerInventory.MaxItemCount + " spots.");
+            }
+        }
+
+        void ManageEquipmentItems(Collider2D item)
+        {
+            var itemInfo = item.GetComponent<InventoryItem>();
+
+            if (itemInfo == null)
+            {
+                Debug.LogError("An EquipmentItem could not be parsed out of this item: " + item.name);
+                return;
+            }
+
+            if (itemInfo.EquipType == EquipType.None)
+            {
+                Debug.LogError("An EquipmentItem has a type of None, cannot be equipped");
+                return;
+            }
+
+            if(PlayerInventory.IsEquipmentSlotEmpty(itemInfo.EquipType) && AutoEquipIfEmpty)
+            {
+                // Auto equip item to slot
+                PlayerInventory.EquipItemAtSlot(PlayerInventory, itemInfo);
+
+                var parentPanel = equipWindow.transform.FindChild("Panel");
+
+                GameObject child = null;
+
+                // Update equipment GUI
+                switch(itemInfo.EquipType)
+                {
+                    case EquipType.Head:
+                        child = parentPanel.FindChild("Head").gameObject;
+                        break;
+                    case EquipType.Top:
+                        child = parentPanel.FindChild("Top").gameObject;
+                        break;
+                    case EquipType.Bottom:
+                        child = parentPanel.FindChild("Bottom").gameObject;
+                        break;
+                    case EquipType.Hands:
+                        child = parentPanel.FindChild("Hands").gameObject;
+                        break;
+                    case EquipType.Feet:
+                        child = parentPanel.FindChild("Feet").gameObject;
+                        break;
+                }
+
+                // set image
+                var img = child.transform.FindChild("Button").gameObject.GetComponent<Image>();
+                img.sprite = itemInfo.Sprite;
+
+                item.GetComponent<SpriteRenderer>().sprite = null;
+                Destroy(item);
+            }
+            else
+            {
+                // Send to Inventory
+                ManageInventoryItems(item, false);
+            }
+        }
+
+        void ManageLockedDoors(Collider2D item)
+        {
+            var keyId = 2;
+            PlayerInventory.RemoveItem(keyId, 1);
+
+            // Get inventoryItem on button
+            InventoryItem btnItemScript = inventoryGridLayout
+                .gameObject.transform.GetComponentsInChildren<InventoryItem>()
+                .FirstOrDefault(i => i.Id == keyId);
+
+            // destroy key
+            Destroy(btnItemScript.gameObject);
+
+            // remove sprite
+            item.GetComponent<SpriteRenderer>().sprite = null;
+
+            // destroy door
+            Destroy(item);
+
+            Debug.Log("Door unlocked!!!");
         }
     }
 }
