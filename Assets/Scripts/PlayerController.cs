@@ -180,7 +180,9 @@ namespace Assets.Scripts
             InventoryItem invItem = item.GetComponent<InventoryItem>();
             if (invItem.Id == 1) invItem.Quantity = Random.Range(1, 10); // Sets random quantity in range
 
-            if (!PlayerInventory.IsFull)
+            bool containsId = PlayerInventory.ContainsItemWithId(invItem.Id);
+
+            if (!PlayerInventory.IsFull || containsId)   
             {
                 bool wasStacked = PlayerInventory.AddItemToInventory(invItem, shouldTryStack);
 
